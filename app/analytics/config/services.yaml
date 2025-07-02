@@ -13,3 +13,23 @@ services:
     App\Consumer\AccountsStreamingConsumer:
       tags:
         - { name: 'enqueue.topic_subscriber', client: 'accounts' }
+
+    App\Consumer\TaskLifecycleConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'tasks' }
+
+    App\Consumer\TaskStreamingConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'tasks' }
+
+    App\Consumer\CostsStreamingConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'billing' }
+
+    App\Consumer\TransactionStreamingConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'billing' }
+
+    App\Consumer\TransactionLifecycleConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'billing' }

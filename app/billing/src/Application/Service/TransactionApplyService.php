@@ -11,7 +11,10 @@ use App\Repository\AccountRepository;
 use App\Repository\BillingCycleRepository;
 use App\Repository\TransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Enqueue\Client\ProducerInterface;
 use Exception;
+use http\Message;
+use Symfony\Component\Serializer\SerializerInterface;
 
 final class TransactionApplyService implements TransactionApplyUseCase
 {
@@ -19,32 +22,51 @@ final class TransactionApplyService implements TransactionApplyUseCase
     private TransactionRepository $transactions;
     private EntityManagerInterface $em; // TODO: Try to opt out of this dependency
     private AccountRepository $accounts;
+    private ProducerInterface $producer;
+    private SerializerInterface $serializer;
 
     public function __construct(
         BillingCycleRepository $billingCycles,
         TransactionRepository $transactions,
         AccountRepository $accounts,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ProducerInterface $producer,
+        SerializerInterface $serializer,
     )
     {
         $this->billingCycles = $billingCycles;
         $this->transactions = $transactions;
         $this->accounts = $accounts;
         $this->em = $em;
+        $this->producer = $producer;
+        $this->serializer = $serializer;
     }
 
     public function execute(TransactionApply $command): Transaction
     {
         switch ($command->type()) {
             case Transaction::WITHDRAW:
-                return $this->withdraw($command->account(), $command->amount());
+                $transaction = $this->withdraw($command->account(), $command->amount());
+                break;
             case Transaction::DEPOSIT:
-                return $this->deposit($command->account(), $command->amount());
+                $transaction = $this->deposit($command->account(), $command->amount());
+                break;
             case Transaction::DISBURSEMENT:
-                return $this->disbursement($command->account(), $command->amount());
+                $transaction = $this->disbursement($command->account(), $command->amount());
+                break;
             default:
                 throw new Exception(sprintf('Unknown transaction type: %s', $command->type()));
         }
+
+        // Produce transaction events
+        $message = new Message(
+            $this->serializer->serialize($transaction, 'json')
+        );
+
+        $this->producer->sendEvent('transactions_stream', $message);
+        $this->producer->sendEvent('transaction_applied', $message);
+
+        return $transaction;
     }
 
     private function withdraw(Account $account, string $amount): Transaction

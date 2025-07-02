@@ -31,3 +31,15 @@ enqueue:
       router_topic: task
       router_queue: task
       default_queue: task
+  billing:
+    transport:
+      dsn: '%env(resolve:ENQUEUE_DSN)%'
+      global:
+        metadata.broker.list: '%env(resolve:KAFKA_BROKER_LIST)%'
+    client:
+      prefix: events
+      app_name: billing
+      router_topic: billing
+      router_queue: billing
+      default_queue: billing
+

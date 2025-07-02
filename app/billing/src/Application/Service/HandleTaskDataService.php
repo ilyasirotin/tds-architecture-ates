@@ -9,22 +9,31 @@ use App\Entity\Task;
 use App\Repository\CostRepository;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
+use Enqueue\Client\ProducerInterface;
+use http\Message;
+use Symfony\Component\Serializer\SerializerInterface;
 
 final class HandleTaskDataService implements HandleTaskDataUseCase
 {
     private TaskRepository $tasks;
     private CostRepository $costs;
     private UserRepository $users;
+    private ProducerInterface $producer;
+    private SerializerInterface $serializer;
 
     public function __construct(
         TaskRepository $tasks,
         CostRepository $costs,
         UserRepository $users,
+        ProducerInterface $producer,
+        SerializerInterface $serializer
     )
     {
         $this->tasks = $tasks;
         $this->costs = $costs;
         $this->users = $users;
+        $this->producer = $producer;
+        $this->serializer = $serializer;
     }
 
     public function execute(HandleTaskData $command): Task
@@ -49,6 +58,15 @@ final class HandleTaskDataService implements HandleTaskDataUseCase
 
         $newTask->setCost($cost);
 
-        return $this->tasks->add($newTask);
+        $newTask = $this->tasks->add($newTask);
+
+        // Stream costs data
+        $message = new Message(
+            $this->serializer->serialize($cost, 'json')
+        );
+
+        $this->producer->sendEvent('costs_stream', $message);
+
+        return $newTask;
     }
 }

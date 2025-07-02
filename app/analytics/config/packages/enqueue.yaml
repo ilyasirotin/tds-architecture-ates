@@ -15,3 +15,36 @@ enqueue:
       router_topic: account
       router_queue: account
       default_queue: account
+  tasks:
+    transport:
+      dsn: '%env(resolve:ENQUEUE_DSN)%'
+      global:
+        group.id: 'analytics-service'
+        metadata.broker.list: '%env(resolve:KAFKA_BROKER_LIST)%'
+        allow.auto.create.topics: 'true'
+      topic:
+        auto.offset.reset: earliest
+      commit_async: true
+    client:
+      prefix: events
+      app_name: tasks
+      router_topic: task
+      router_queue: task
+      default_queue: task
+  billing:
+    transport:
+      dsn: '%env(resolve:ENQUEUE_DSN)%'
+      global:
+        group.id: 'analytics-service'
+        metadata.broker.list: '%env(resolve:KAFKA_BROKER_LIST)%'
+        allow.auto.create.topics: 'true'
+      topic:
+        auto.offset.reset: earliest
+      commit_async: true
+    client:
+      prefix: events
+      app_name: billing
+      router_topic: billing
+      router_queue: billing
+      default_queue: billing
+

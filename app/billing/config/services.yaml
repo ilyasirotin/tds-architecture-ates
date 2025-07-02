@@ -21,3 +21,15 @@ services:
     App\Consumer\TaskLifecycleConsumer:
       tags:
         - { name: 'enqueue.topic_subscriber', client: 'tasks' }
+
+    App\Application\Service\HandleTaskDataService:
+      arguments:
+        $producer: '@enqueue.client.billing.producer'
+
+    App\Application\Service\TransactionApplyService:
+      arguments:
+        $producer: '@enqueue.client.billing.producer'
+
+    App\Console\ProcessPaymentsCommand:
+      arguments:
+        $producer: '@enqueue.client.billing.producer'
