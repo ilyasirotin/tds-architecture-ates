@@ -1,5 +1,5 @@
 enqueue:
-  accounts_streaming:
+  accounts:
     transport:
       dsn: '%env(resolve:ENQUEUE_DSN)%'
       global:
@@ -10,8 +10,20 @@ enqueue:
         auto.offset.reset: earliest
       commit_async: true
     client:
-      prefix: stream
+      prefix: events
       app_name: auth
-      router_topic: accounts
-      router_queue: accounts
-      default_queue: accounts
+      router_topic: account
+      router_queue: account
+      default_queue: account
+  tasks:
+    transport:
+      dsn: '%env(resolve:ENQUEUE_DSN)%'
+      global:
+        metadata.broker.list: '%env(resolve:KAFKA_BROKER_LIST)%'
+        allow.auto.create.topics: 'true'
+    client:
+      prefix: events
+      app_name: tasks
+      router_topic: task
+      router_queue: task
+      default_queue: task

@@ -9,3 +9,15 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    App\Consumer\AccountsStreamingConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'accounts' }
+
+    App\Consumer\TaskStreamingConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'tasks' }
+
+    App\Consumer\TaskLifecycleConsumer:
+      tags:
+        - { name: 'enqueue.topic_subscriber', client: 'tasks' }

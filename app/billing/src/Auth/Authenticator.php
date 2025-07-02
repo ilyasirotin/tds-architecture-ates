@@ -2,6 +2,8 @@
 
 namespace App\Auth;
 
+use App\Application\Service\HandleUserData;
+use App\Application\Service\HandleUserDataUseCase;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
@@ -25,18 +27,21 @@ class Authenticator extends OAuth2Authenticator implements AuthenticationEntryPo
     private $entityManager;
     private $router;
     private SerializerInterface $serializer;
+    private HandleUserDataUseCase $userService;
 
     public function __construct(
         ClientRegistry $clientRegistry,
         EntityManagerInterface $entityManager,
         RouterInterface $router,
         SerializerInterface $serializer,
+        HandleUserDataUseCase $userService,
     )
     {
         $this->clientRegistry = $clientRegistry;
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->serializer = $serializer;
+        $this->userService = $userService;
     }
 
     public function supports(Request $request): ?bool
@@ -51,24 +56,15 @@ class Authenticator extends OAuth2Authenticator implements AuthenticationEntryPo
 
         return new SelfValidatingPassport(
             new UserBadge($accessToken->getToken(), function() use ($accessToken, $client) {
-
                 $fetchedUser = $this->serializer->deserialize(
                     json_encode($client->fetchUserFromToken($accessToken)),
                     User::class,
                     'json'
                 );
 
-                $user = $this->entityManager
-                    ->getRepository(User::class)
-                    ->findOneBy(['publicId' => $fetchedUser->getPublicId()]);
-
-                if (isset($user)) {
-                    return $user;
-                }
-
-                return $this->entityManager
-                    ->getRepository(User::class)
-                    ->add($fetchedUser);
+                return $this->userService->execute(
+                    new HandleUserData($fetchedUser)
+                );
             })
         );
     }

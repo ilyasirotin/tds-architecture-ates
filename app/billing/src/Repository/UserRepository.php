@@ -27,10 +27,12 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
 
     public function add(User $user): User
     {
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        return $this->save($user);
+    }
 
-        return $user;
+    public function update(User $user): User
+    {
+        return $this->save($user);
     }
 
     public function loadUserByIdentifier(string $identifier): ?User
@@ -40,8 +42,16 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             return $this->findOneBy(['email' => $identifier]);
         }
         if (Uuid::isValid($identifier)) {
-            return $this->findOneBy(['uuid' => Uuid::fromString($identifier)->toBinary()]);
+            return $this->findOneBy(['publicId' => Uuid::fromString($identifier)->toBinary()]);
         }
         return null;
+    }
+
+    private function save(User $user): User
+    {
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
+
+        return $user;
     }
 }

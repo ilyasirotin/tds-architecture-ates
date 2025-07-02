@@ -43,6 +43,10 @@ fixtures-load:
 	$(DOCKER_COMPOSE) exec auth-php-fpm php bin/console doctrine:fixtures:load --append
 .PHONY: fixtures-load
 
+bootstrap-app:
+	$(DOCKER_COMPOSE) exec auth-php-fpm php bin/console app:create-users
+.PHONY: bootstrap-app
+
 composer-install:
 	$(DOCKER_COMPOSE) run --rm auth-php-fpm composer install
 	$(DOCKER_COMPOSE) run --rm tasks-php-fpm composer install
@@ -50,7 +54,8 @@ composer-install:
 .PHONY: composer-install
 
 start-consumers:
-	$(DOCKER_COMPOSE) exec -d tasks-php-fpm php bin/console enqueue:consume --setup-broker
+	$(DOCKER_COMPOSE) exec -d tasks-php-fpm supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
+	$(DOCKER_COMPOSE) exec -d billing-php-fpm supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
 .PHONY: start-consumers
 
 build:
@@ -69,7 +74,7 @@ down-clear:
 	$(DOCKER_COMPOSE) down -v --remove-orphans
 .PHONY: down-clear
 
-init: make-env build up composer-install doctrine-migrate fixtures-load oauth2-gen-keys oauth2-create-clients
+init: build up composer-install doctrine-migrate fixtures-load start-consumers bootstrap-app
 .PHONY: init
 
 ssh-auth:

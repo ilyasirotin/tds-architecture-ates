@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Services;
+namespace App\Application\Service;
 
 use App\Entity\User;
 
-final class RegisterUserCommand
+final class HandleUserData
 {
     private User $user;
 

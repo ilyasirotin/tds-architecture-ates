@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create new task{% endblock %}
+
+{% block body %}
+    <h1>Daily finance statement:</h1>
+    <p style="font-size: 20px;">Account balance: {{ statement.account.balance }}</p>
+    {% if statement.transactions is not empty %}
+        <style>
+            table, th, td{
+                border: 1px solid black;
+                border-collapse: collapse;
+                padding: 6px;
+            }
+        </style>
+
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Billing cycle state</th>
+                <th>Payment</th>
+                <th>Credit</th>
+                <th>Debit</th>
+                <th>Type</th>
+                <th>Time</th>
+            </tr>
+            {% set transactions = statement.transactions %}
+            {% for key, transaction in transactions %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.billingCycle.status|capitalize }}</td>
+                    <td>{{ transaction.payment ? transaction.payment.status|capitalize : '' }}</td>
+                    <td>{{ transaction.credit }}</td>
+                    <td>{{ transaction.debit }}</td>
+                    <td>{{ transaction.type|capitalize }}</td>
+                    <td>{{ transaction.createdAt|date('H:i:s') }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        No transactions
+    {% endif %}
+{% endblock %}

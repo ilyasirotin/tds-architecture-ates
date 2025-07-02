@@ -6,5 +6,5 @@ namespace App\Application\Services;
 
 interface RegisterUserUseCase
 {
-    public function execute(RegisterUserCommand $command);
+    public function execute(RegisterUser $command);
 }

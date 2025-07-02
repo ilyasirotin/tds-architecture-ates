@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create new task{% endblock %}
+
+{% block body %}
+    <h1>Tasks list:</h1>
+    <a href="{{ path('app_task_add') }}">Add new</a>
+    {% if canShuffle and tasks is not empty %}
+        <a href="{{ path('app_task_shuffle') }}"> | Shuffle</a>
+    {% endif %}
+    <br/><br/>
+    {% if tasks is not empty %}
+
+        <style>
+            table, th, td{
+                border: 1px solid black;
+                border-collapse: collapse;
+                padding: 6px;
+            }
+        </style>
+
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Author</th>
+                <th>Assignee</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+            {% for task in tasks %}
+                <tr>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.description }}</td>
+                    <td>{{ task.author.email }}</td>
+                    <td>{{ task.assignee.email }}</td>
+                    <td>{{ task.status == 0 ? 'In Progress' : 'Completed'}}</td>
+                    <td>{{ task.createdAt|date('d-m-Y H:i:s') }}</td>
+                    {% if task.assignee.id == app.user.id %}
+                        <td>
+                            {# TODO: Refactor task completion action #}
+                            {# Pass task id in request query params just for simplicity #}
+                            {%  if task.status == 0 %}
+                                <a href="{{ path('app_task_complete', {id: task.id}) }}">Complete</a>
+                            {% endif %}
+                        </td>
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        Empty
+    {% endif %}
+{% endblock %}

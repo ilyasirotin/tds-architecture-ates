@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Application\Services\RegisterUserCommand;
+use App\Application\Services\RegisterUser;
 use App\Application\Services\RegisterUserUseCase;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
@@ -48,7 +48,7 @@ class RegistrationController extends AbstractController
                 )
             );
 
-            $this->service->execute(new RegisterUserCommand($user));
+            $this->service->execute(new RegisterUser($user));
 
             return $this->security->login($user, 'form_login', 'main');
         }

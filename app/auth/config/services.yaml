@@ -22,4 +22,4 @@ services:
 
     App\Application\Services\RegisterUserService:
       arguments:
-        $producer: '@enqueue.client.accounts_streaming.producer'
+        $producer: '@enqueue.client.accounts.producer'

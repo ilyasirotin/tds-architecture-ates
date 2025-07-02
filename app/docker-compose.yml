@@ -102,12 +102,20 @@ services:
       context: "./tasks/docker"
       dockerfile: php-fpm/Dockerfile
     volumes:
+      - "./tasks/docker/php-fpm/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro,Z"
       - "./tasks:/app:rw,Z"
     depends_on:
       - tasks-db
     networks:
       - internet
       - no-internet
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.tasks-supervisor.rule=Host(`tasks-spv.localhost`)
+      - traefik.http.routers.tasks-supervisor.entryPoints=http
+      - traefik.http.services.tasks-supervisor.loadBalancer.server.port=9001
   tasks-db:
     restart: always
     container_name: "tasks-db"
@@ -153,12 +161,20 @@ services:
       context: "./billing/docker"
       dockerfile: php-fpm/Dockerfile
     volumes:
+      - "./billing/docker/php-fpm/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro,Z"
       - "./billing:/app:rw,Z"
     depends_on:
       - billing-db
     networks:
       - internet
       - no-internet
+      - traefik-public
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.http.routers.billing-supervisor.rule=Host(`billing-spv.localhost`)
+      - traefik.http.routers.billing-supervisor.entryPoints=http
+      - traefik.http.services.billing-supervisor.loadBalancer.server.port=9001
   billing-db:
     restart: always
     container_name: "billing-db"
@@ -221,7 +237,8 @@ services:
       kafka-topics --bootstrap-server kafka:29092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic stream.auth.accounts --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic events.auth.account --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic events.tasks.task --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list

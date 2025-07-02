@@ -46,6 +46,10 @@ class User implements UserInterface
     #[ORM\Column(type: 'datetime', nullable: false)]
     private DateTime $updatedAt;
 
+    #[ORM\OneToOne(targetEntity: Account::class)]
+    #[ORM\JoinColumn(name: 'account', referencedColumnName: 'id', nullable: true)]
+    private ?Account $account = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -157,6 +161,18 @@ class User implements UserInterface
     public function getUpdatedAt(): DateTime
     {
         return $this->updatedAt;
+    }
+
+    public function setAccount(Account $account): self
+    {
+        $this->account = $account;
+
+        return $this;
+    }
+
+    public function getAccount(): Account
+    {
+        return $this->account;
     }
 
     /**

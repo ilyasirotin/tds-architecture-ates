@@ -24,6 +24,8 @@ RUN apk add --update --no-cache \
         icu-data-full \
         rabbitmq-c-dev \
         librdkafka-dev \
+        supervisor \
+        python3 \
     && git clone --branch $XDEBUG_VERSION --depth 1 https://github.com/xdebug/xdebug.git /usr/src/php/ext/xdebug \
     && docker-php-ext-configure \
         xdebug --enable-xdebug-dev \

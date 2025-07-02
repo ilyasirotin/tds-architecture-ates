@@ -40,8 +40,37 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             return $this->findOneBy(['email' => $identifier]);
         }
         if (Uuid::isValid($identifier)) {
-            return $this->findOneBy(['uuid' => Uuid::fromString($identifier)->toBinary()]);
+            return $this->findOneBy(['publicId' => Uuid::fromString($identifier)->toBinary()]);
         }
         return null;
+    }
+
+    /**
+     * @param array<string> $excludedRoles
+     * @return array<User>
+     */
+    public function findAssignees(array $excludedRoles): array
+    {
+        $rsm = $this->createResultSetMappingBuilder('u');
+
+        // Dummy query just to save time
+        $rawQuery = <<<SQL
+            SELECT %s
+            FROM "user" u
+            WHERE NOT EXISTS(
+                SELECT 1
+                FROM json_array_elements_text(u.roles) r
+                WHERE r IN (:roles)
+            )
+            limit 100;
+        SQL;
+
+        $query = $this->getEntityManager()->createNativeQuery(
+            sprintf($rawQuery, $rsm->generateSelectClause()),
+            $rsm
+        );
+        $query->setParameter('roles', $excludedRoles);
+
+        return $query->getResult();
     }
 }
